@@ -58,27 +58,4 @@ def get_mood_history():
         result = session.execute(select(mood_log)).fetchall()
         return result
 
-def save_journal_entry(timestamp, entry_text):
-    with SessionLocal() as session:
-        session.execute(insert(journal).values(timestamp=timestamp, entry=entry_text))
-        session.commit()
-
-def get_user_settings():
-    with SessionLocal() as session:
-        result = session.execute(select(user_settings)).fetchone()
-        return result
-
-def set_user_notify(value: str):
-    with SessionLocal() as session:
-        result = session.execute(select(user_settings)).fetchone()
-        if result:
-            session.execute(
-                update(user_settings)
-                .where(user_settings.c.id == result.id)
-                .values(notify=value)
-            )
-        else:
-            session.execute(insert(user_settings).values(notify=value))
-        session.commit()
-
-
+def save_journal_
