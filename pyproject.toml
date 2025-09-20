@@ -1,8 +1,9 @@
 [tool.poetry]
-name = "telegram-bot3"
+name = "telegram-bot"
 version = "0.1.0"
-description = "Telegram bot"
-authors = ["Your Name <your.email@example.com>"]
+description = "Telegram bot with PostgreSQL"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.11.9"
@@ -10,7 +11,9 @@ python-telegram-bot = "20.7"
 SQLAlchemy = "2.0.32"
 psycopg2-binary = "2.9.9"
 httpx = "0.25.2"
-anyio = "4.10.0"
+
+[tool.poetry.dev-dependencies]
+# Здесь можно добавить dev-зависимости, например для тестирования
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
