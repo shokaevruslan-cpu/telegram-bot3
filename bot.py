@@ -81,3 +81,4 @@ def set_user_notify(value: str):
             session.execute(insert(user_settings).values(notify=value))
         session.commit()
 
+
