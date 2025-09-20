@@ -7,7 +7,12 @@ from sqlalchemy.orm import sessionmaker
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Создаём подключение к базе
-engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"}, future=True)
+engine = create_engine(
+    DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
+    connect_args={"sslmode": "require"},
+    future=True
+)
+
 metadata = MetaData()
 
 # Таблица настроения
@@ -75,3 +80,4 @@ def set_user_notify(value: str):
         else:
             session.execute(insert(user_settings).values(notify=value))
         session.commit()
+
