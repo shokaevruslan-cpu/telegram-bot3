@@ -1,11 +1,13 @@
 import os
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Text
-from sqlalchemy.sql import select, insert, update
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Text, select, insert, update
+from sqlalchemy.orm import sessionmaker
 
+# DATABASE_URL должен быть вида:
+# postgresql+psycopg://username:password@host:port/dbname
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Создаём подключение к базе
-engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
+engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"}, future=True)
 metadata = MetaData()
 
 # Таблица настроения
@@ -37,34 +39,39 @@ user_settings = Table(
 # Создаём таблицы (если их ещё нет)
 metadata.create_all(engine)
 
+# Сессии для работы с БД
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 # 📌 Функции работы с БД
 def log_mood(timestamp, mood_value):
-    with engine.begin() as conn:
-        conn.execute(insert(mood_log).values(timestamp=timestamp, mood=mood_value))
-
+    with SessionLocal() as session:
+        session.execute(insert(mood_log).values(timestamp=timestamp, mood=mood_value))
+        session.commit()
 
 def get_mood_history():
-    with engine.begin() as conn:
-        result = conn.execute(select(mood_log)).fetchall()
+    with SessionLocal() as session:
+        result = session.execute(select(mood_log)).fetchall()
         return result
-
 
 def save_journal_entry(timestamp, entry_text):
-    with engine.begin() as conn:
-        conn.execute(insert(journal).values(timestamp=timestamp, entry=entry_text))
-
+    with SessionLocal() as session:
+        session.execute(insert(journal).values(timestamp=timestamp, entry=entry_text))
+        session.commit()
 
 def get_user_settings():
-    with engine.begin() as conn:
-        result = conn.execute(select(user_settings)).fetchone()
+    with SessionLocal() as session:
+        result = session.execute(select(user_settings)).fetchone()
         return result
 
-
 def set_user_notify(value: str):
-    with engine.begin() as conn:
-        result = conn.execute(select(user_settings)).fetchone()
+    with SessionLocal() as session:
+        result = session.execute(select(user_settings)).fetchone()
         if result:
-            conn.execute(update(user_settings).values(notify=value))
+            session.execute(
+                update(user_settings)
+                .where(user_settings.c.id == result.id)
+                .values(notify=value)
+            )
         else:
-            conn.execute(insert(user_settings).values(notify=value))
+            session.execute(insert(user_settings).values(notify=value))
+        session.commit()
