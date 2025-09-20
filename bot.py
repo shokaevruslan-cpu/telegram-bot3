@@ -3,10 +3,10 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, 
 from sqlalchemy.orm import sessionmaker
 
 # DATABASE_URL должен быть вида:
-# postgresql+psycopg://username:password@host:port/dbname
+# postgresql://username:password@host:port/dbname
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Создаём подключение к базе
+# Преобразуем для psycopg3
 engine = create_engine(
     DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
     connect_args={"sslmode": "require"},
@@ -41,7 +41,7 @@ user_settings = Table(
     Column("notify", String),
 )
 
-# Создаём таблицы (если их ещё нет)
+# Создаём таблицы, если их нет
 metadata.create_all(engine)
 
 # Сессии для работы с БД
@@ -58,4 +58,25 @@ def get_mood_history():
         result = session.execute(select(mood_log)).fetchall()
         return result
 
-def save_journal_
+def save_journal_entry(timestamp, entry_text):
+    with SessionLocal() as session:
+        session.execute(insert(journal).values(timestamp=timestamp, entry=entry_text))
+        session.commit()
+
+def get_user_settings():
+    with SessionLocal() as session:
+        result = session.execute(select(user_settings)).fetchone()
+        return result
+
+def set_user_notify(value: str):
+    with SessionLocal() as session:
+        result = session.execute(select(user_settings)).fetchone()
+        if result:
+            session.execute(
+                update(user_settings)
+                .where(user_settings.c.id == result.id)
+                .values(notify=value)
+            )
+        else:
+            session.execute(insert(user_settings).values(notify=value))
+        session.commit()
